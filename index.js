@@ -14,7 +14,7 @@ http.createServer((req,res) => {
     case '/':
     /**
      * fs.readFile will read relative file path and send a result back to the
-     * call back (annonymous function).
+     * call back function (annonymous function).
      * 
      * In this annonymous function, err (error) and data will be handled.
      * Then, display data to browser if no error.
