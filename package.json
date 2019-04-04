@@ -1,15 +1,22 @@
 {
   "name": "itc230",
   "version": "1.0.0",
-  "description": "Sample project for Advanced Javascript",
+  "description": "ITC230-Advanced Javascript",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ngocdai94/itc230.git"
   },
+  "keywords": [
+    "itc230",
+    "advanced",
+    "javascript"
+  ],
   "author": "Dai Nguyen",
-  "license": "MIT",
+  "license": "ISC",
   "bugs": {
     "url": "https://github.com/ngocdai94/itc230/issues"
   },
