@@ -1,1 +1,8 @@
-ITC230-Advanced Javascript
+***** ITC230 - Advanced Javascript *****
+
+--- Week 1: Node.js Up and Running ---
+- Launch a Node.js Web Server that can respond to request
+- Create a package.json
+- Display home.html on Web Browser if it is requested (http://localhost:3000)
+- Display about iformation if it is requested (http://localhost:3000/about)
+- Display "404:Page Not Found" if the path is not available.
