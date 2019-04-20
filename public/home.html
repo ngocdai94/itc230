@@ -9,6 +9,39 @@
     <script src="main.js"></script> -->
 </head>
 <body>
-    <h1>Home Page</h1>
+    <h1>Welcome to Book Inventory</h1>
+
+    <form action="/get" method="POST">
+        <input type="search" id="title" name="title" size="40" required="required" placeholder="Enter the name of the book">
+        <button type="submit">Search</button>
+    </form>
+
+    <div>
+        {{#if add }}
+            <p>{{title}} has been added to the Book Collection.</p>
+            <p>Below is the list detail....</p>
+        {{else}}
+
+        {{/if}}
+    </div>
+    <br>
+    <form action="/add" method="GET">
+        <fieldset>
+            <legend>Add Book</legend>
+            <label for="title">Title: </label>
+            <input type="text" id="title" name="title" required="required"/>
+
+            <br>
+            <label for="author">Author: </label>
+            <input type="text" id="author" name="author" required="required"/>
+
+            <br>
+            <label for="price">Price: </label>
+            <input type="text" id="price" name="price" required="required"/>
+
+            <br>
+            <button type="submit">Add</button>
+        </fieldset>
+    </form>
 </body>
 </html>

@@ -1,3 +1,7 @@
+#ignore files installed by npm
+node_modules
+
 /Ex_Files_Nodejs_EssT
+/Ex_Files_Express_EssT
 Github Workflow.pdf
 index-bak.js

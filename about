@@ -6,3 +6,10 @@
 - Display home.html on Web Browser if it is requested (http://localhost:3000)
 - Display about iformation if it is requested (http://localhost:3000/about)
 - Display "404:Page Not Found" if the path is not available.
+
+--- Week 2: Node.js with Modulars ---
+- Create get, getAll, delete, and find functions to return an item in JSON book collection
+
+--- Week 3: Introduction to Express ---
+- Convert previous assignment to Express synxtax
+- Remove unecessary if condition cases

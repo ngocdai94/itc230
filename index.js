@@ -2,143 +2,123 @@
  * Code to launch a Node.js web server that can respond to requests
  * */ 
 
+'use strict'
+
 // Importing necessary pakages and js files for the program
-const bookCollection = require ("./lib/bookCollection");
-const querystring = require('querystring');
-const http = require("http");   // require http pakage
-const fs = require("fs");       // require file system package
+const book = require ("./lib/bookCollection");
+const query = require('querystring');
 
-// Constant Variables
+// Using express
+const express = require("express");
+const bodyParser = require("body-parser")
+const app = express();
+
+// Views & Templating
+let handlebars =  require("express-handlebars");
+app.engine(".html", handlebars({extname: '.html'}));
+app.set("view engine", ".html");
+
+// Configuing express for index.js
+app.set('port', process.env.PORT || 3000);
+app.use(express.static(__dirname + '/public'));   // set location for static files
+app.use(bodyParser.urlencoded({extended: true})); // parse form submissions
+
+// Constant and Global Variables
 const NOT_FOUND = -1;
-const WHITE_SPACE_CASE_1 = '+';
-const WHITE_SPACE_CASE_2 = '%20';
+const DEFAULT_KEY = "title";
+const itemKey = DEFAULT_KEY;
 
-// Global Variables
-var itemKey = '';
-var itemValue = '';
+// Send static file as response
+app.get('/', (req, res) => {
+  res.type('text/html');
+  res.render('home', {layout: 'main', book: book.getAll});
+});
 
-// Initialize Node.js server and Listen on port 3000
-http.createServer((req,res) => {
-  // Get Request Path and Request Method
-  const path = req.url; //.toLowerCase();
-  var requestMethod = '';
+app.get('/about', (req, res) => {
+  res.type('text/plain');
+  res.sendFile(__dirname + '/about'); 
+});
 
-  if (path.indexOf('?') != NOT_FOUND)
-    requestMethod = path.substr(0, path.indexOf('?'));
-  else {
-    requestMethod = path;
-  }
-  
-  /**  
-   * Uncomment the lines below to check for URL path
-  */
-  // console.log(path);
-  // console.log('Method request is... ' + requestMethod);
+// Handle get method by GET request
+app.get('/get', (req, res) => {
+  let itemValue = parseSpecialTitleName(req.url);
+  let result = book.get(itemKey, itemValue.toLowerCase()); 
 
-  // Response according to requested path/method and output data to browser
-  switch(requestMethod) {
-    case '/':
-    /**
-     * fs.readFile will read relative file path and send a result back to the
-     * call back function (annonymous function).
-     * 
-     * In this annonymous function, err (error) and data will be returned from the
-     * call back function.
-     * Then, display data to browser if no error.
-     */
-      fs.readFile("public/home.html", (err, data) => {
-        if (err) return console.error(err);
-        res.writeHead(200, {'Content-Type': 'text/html'});
-        res.end(data.toString());
-      });
-    break;
+  if (result == NOT_FOUND) result = false; 
 
-    case '/about':
-      fs.readFile("about", (err, data) => {
-        if (err) return console.error(err);
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end(data.toString());
-      });
-    break;
-    
-    case '/get':
-      // Return 1st index of the book collection if no search key is defined
-      // Otherwise, return the search result for the search key
-      if (path.indexOf('?') == NOT_FOUND) {
-        var data = bookCollection.getAll();
-        res.writeHead(200, {'Content-Type': 'text/JSON'});
-        res.end(JSON.stringify(data[0]));
-      } else {
-        // parsing item key and value
-        parseURL(path);
+  res.type('text/html');
+  res.render('details', {layout: 'main', title: req.query.title, result: result});
+});
 
-        // search and return search result
-        var data = bookCollection.get(itemKey, itemValue);
-        if (data == NOT_FOUND) data = 'Not Found';
-        res.writeHead(200, {'Content-Type': 'text/JSON'});
-        res.end('Searching for ' + itemValue + ':\n' + JSON.stringify(data));
-      }
-    break;
+// Handle get method by POST request
+app.post('/get', (req, res) => {
+  // req.body will return JSON object //console.log(req.body);
+  let result = book.get(itemKey, req.body.title.toLowerCase()); 
 
-    case '/getAll':
-      var data = bookCollection.getAll();
-      res.writeHead(200, {'Content-Type': 'text/JSON'});
-      res.end(JSON.stringify(data));
-    break;
+  if (result == NOT_FOUND) result = false; 
 
-    case '/add':
-      if (path.indexOf('?') == NOT_FOUND) {
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('Nothing to add');
-      } else {
-        // parsing add request URL key and value, then add to JSON book collection
-        var itemURL = path.substr(path.indexOf('?')+1);
-        var jsonObject = querystring.parse(itemURL);
-        var result = bookCollection.add(jsonObject);
-        
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end(JSON.stringify(jsonObject) + ' is added.\n' + 'Total items is ' + result.total);
-      }
-    break;
+  res.type('text/html');
+  res.render('details', {layout: 'main', title: req.body.title, result: result});
+});
 
-    case '/delete':
-      // Delete a requested item if in the list
-      if (path.indexOf('?') == NOT_FOUND) {
-        res.writeHead(200, {'Content-Type': 'text/plain'});
-        res.end('Please specify an item to delete!');
-      } else {
-        // parsing item key and value
-        parseURL(path);
+app.get('/add', (req, res) => {
+  let jsonObject = parseURLtoJSON(req.url);
+  let result = book.add(jsonObject);
+   
+  res.type('text/html');
+  res.render('home', {layout: 'main', title: req.query.title, result: result, book: book.getAll});
+});
 
-        // delete and return result
-        var data = bookCollection.delete(itemKey, itemValue);
-        if (data != NOT_FOUND) {
-          res.writeHead(200, {'Content-Type': 'text/plain'});
-          res.end(itemValue + ' removed.');
-        } else {
-          res.writeHead(200, {'Content-Type': 'text/plain'});
-          res.end(itemValue + ' not removed or have been removed.');
-        }
+app.get('/delete', (req, res) => {
+  let found = false;
+  let itemValue = parseSpecialTitleName(req.url);
+  let result = book.delete(itemKey, itemValue.toLowerCase()); 
 
-        // check data in terminal
-        // console.log('\n\n' + data + '\n\n');
-      }
-    break;
+  if (result != NOT_FOUND) found = true;
 
-    default:
-      res.writeHead(404, {'Content-Type': 'text/plain'});
-      res.end('404:Page Not Found');
-    break;
-  }
-}).listen(process.env.PORT || 3000);
+  res.type('text/html');
+  res.render('delete', {layout: 'main', title: req.query.title, result: result, found: found});
+});
 
-function parseURL (path) {
-  // parsing item key and value
+// Define 404 handler
+app.use( (req,res) => {
+  res.type('text/plain'); 
+  res.status(404);
+  res.send('404 - Not found');
+});
+
+// Initilize node.js server on defined port
+app.listen(app.get('port'), () => {
+  console.log('Express started');    
+});
+
+/**
+ * For add request case, convert URL to JSON object. 
+ * Then, set its propety to the Book type
+ * 
+ * @param {req.url} path 
+ */
+function parseURLtoJSON (path) {
   let itemURL = path.substr(path.indexOf('?')+1);
-  itemKey = itemURL.split('=')[0];
-  itemValue = itemURL.split('=')[1];
+  let jsonObject = query.parse(itemURL);
 
-  // replace white spaces for two words names
-  if (itemValue.indexOf(WHITE_SPACE_CASE_1) != NOT_FOUND) itemValue = itemValue.replace('+', ' ');
-  if (itemValue.indexOf(WHITE_SPACE_CASE_2) != NOT_FOUND) itemValue = itemValue.replace('%20', ' ');
+  // IMPORTANT: have to convert [Object: null prototype] to book object
+  Object.setPrototypeOf(jsonObject, book);
+  
+  return jsonObject;
+}
+
+/**
+ * Parse special white spaces,%20, from the URL.
+ * @param {req.url} path 
+ */
+function parseSpecialTitleName (path) {
+  let regex = /%20/gi;  // special white space from URL
+  let itemURL = path.substr(path.indexOf('?')+1);
+  let itemValue = itemURL.split('=')[1];
+
+  // Replace all white space, %20, to ' '
+  itemValue = itemValue.replace(regex, ' ');
+  
+  return itemValue;
 }
