@@ -13,3 +13,16 @@
 --- Week 3: Introduction to Express ---
 - Convert previous assignment to Express synxtax
 - Remove unecessary if condition cases
+
+--- Week 4: Quality Assurance ---
+/**
+*   --save: dependecies of working project
+*   --save-dev: developer dependecies, not related to working project.    
+*/
+1. Syntax Checking
+- Eslint: npm install -g eslint; eslint --init
+(optional: may have to install standard format globally)
+
+2. Testing
+- mocha (npx mocha test/** || npm mocha)
+- chai

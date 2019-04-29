@@ -8,8 +8,12 @@
 <div>
     {{#if book}}
         {{#if result }}
-            <p style="color:red"><b>{{title}}</b> is added to the Book Collection.</p>
-            <p style="color:red">Total item is: {{result.total}} </p>
+            {{#if result.added }}
+                <p style="color:red"><b>{{title}}</b> is added to the Book Collection.</p>
+                <p style="color:red">Total item is: {{result.total}} </p>
+            {{else}}
+                <p><p style="color:red"><b>{{title}}</b> has already been added.</p></p>
+            {{/if}}
         {{/if}}
 
         <h2>Below is our book collection..</h2>
