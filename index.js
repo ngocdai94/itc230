@@ -5,7 +5,7 @@
 'use strict';
 
 // Importing necessary pakages and js files for the program
-const book = require('./lib/bookCollection');
+const Book = require('./models/book');
 const query = require('querystring');
 
 // Using express
@@ -29,9 +29,14 @@ const DEFAULT_KEY = 'title';
 const itemKey = DEFAULT_KEY;
 
 // Send static file as response
-app.get('/', (req, res) => {
-  res.type('text/html');
-  res.render('home', {layout: 'main', book: book.getAll});
+app.get('/', (req, res, next) => {
+  // return all item in book collections
+  Book.find({}, (err, items) => {
+    if (err) return next(err);
+    console.log(items.length);
+    res.type('text/html');
+    res.render('home', {layout: 'main', book: items }); 
+  });
 });
 
 app.get('/about', (req, res) => {
@@ -40,51 +45,63 @@ app.get('/about', (req, res) => {
 });
 
 // Handle get method by GET request
-app.get('/get', (req, res) => {
-  const itemValue = parseSpecialTitleName(req.url);
-  let result = book.get(itemKey, itemValue.toLowerCase());
+app.get('/get', (req, res, next) => {
+  const itemTitle = parseSpecialTitleName(req.url);
+  let my_pattern = new RegExp(itemTitle,"i"); // insentivtive letter cases
 
-  if (result == NOT_FOUND) result = false;
-
-  res.type('text/html');
-  res.render('details',
-      {layout: 'main', title: req.query.title, result: result});
+  // return a single record
+  Book.findOne({title:{$regex : my_pattern}}, (err, item) => {
+    if (err) return next(err);
+    console.log(item);
+    res.type('text/html');
+    res.render('details',{layout: 'main', title: itemTitle, result: item});
+  }); 
 });
 
 // Handle get method by POST request
-app.post('/get', (req, res) => {
-  // req.body will return JSON object //console.log(req.body);
-  let result = book.get(itemKey, req.body.title.toLowerCase());
+app.post('/get', (req, res, next) => {
+  let my_pattern = new RegExp(req.body.title,"i"); // insentivtive letter cases
 
-  if (result == NOT_FOUND) result = false;
-
-  res.type('text/html');
-  res.render('details',
-      {layout: 'main', title: req.body.title, result: result});
+  // return a single record
+  Book.findOne({title:{$regex : my_pattern}}, (err, item) => {
+    if (err) return next(err);
+    console.log(item);
+    res.type('text/html');
+    res.render('details',{layout: 'main', title: req.body.title, result: item});
+  }); 
 });
 
-app.get('/add', (req, res) => {
-  const jsonObject = parseURLtoJSON(req.url);
-  const result = book.add(jsonObject);
+app.get('/add', (req, res, next) => {
+  const newBook = parseURLtoJSON(req.url);
 
-  res.type('text/html');
-  res.render('home',
-      {layout: 'main',
-        title: req.query.title,
-        result: result,
-        book: book.getAll});
+  // insert or update a single record
+  Book.updateOne({title: req.query.title}, newBook, {upsert:true}, (err, result) => {
+    if (err) return next(err);
+    console.log(result);
+    
+    Book.find({}, (err, items) => {
+      if (err) return next(err);
+      console.log(items.length);
+      res.type('text/html');
+      res.render('home', {layout:'main', title: req.query.title, result: result, found: result.nModified == 0, book:items});
+    });
+  }); 
 });
 
-app.get('/delete', (req, res) => {
+app.get('/delete', (req, res, next) => {
   let found = false;
-  const itemValue = parseSpecialTitleName(req.url);
-  const result = book.delete(itemKey, itemValue.toLowerCase());
+  const deleteBook = parseSpecialTitleName(req.url);
 
-  if (result != NOT_FOUND) found = true;
+  // insert or update a single record
+  Book.deleteOne({title: deleteBook}, (err, result) => {
+    if (err) return next(err);
+    console.log(result);
 
-  res.type('text/html');
-  res.render('delete',
-      {layout: 'main', title: req.query.title, result: result, found: found});
+    if (result != null) found = true;
+
+    res.type('text/html');
+    res.render('delete',{layout: 'main', title: req.query.title, result: result, found: found});
+  }); 
 });
 
 // Define 404 handler
@@ -111,7 +128,7 @@ function parseURLtoJSON(path) {
   const jsonObject = query.parse(itemURL);
 
   // IMPORTANT: have to convert [Object: null prototype] to book object
-  Object.setPrototypeOf(jsonObject, book);
+  Object.setPrototypeOf(jsonObject, Book);
 
   return jsonObject;
 }

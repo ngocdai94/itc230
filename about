@@ -7,10 +7,10 @@
 - Display about iformation if it is requested (http://localhost:3000/about)
 - Display "404:Page Not Found" if the path is not available.
 
---- Week 2: Node.js with Modulars ---
+--- Week 2: Node.js with Modulars (index-week2.js)---
 - Create get, getAll, delete, and find functions to return an item in JSON book collection
 
---- Week 3: Introduction to Express ---
+--- Week 3: Introduction to Express (index-week3.js)---
 - Convert previous assignment to Express synxtax
 - Remove unecessary if condition cases
 
@@ -26,3 +26,9 @@
 2. Testing
 - mocha (npx mocha test/** || npm mocha)
 - chai
+
+--- Week 5: MongoDB Atlas (index.js) ---
+- create a non-commit confidential to store database login information 
+- integrate moongoose with MongoDB to index.js
+- update views and layout
+- use RegEx to allow non-sensitive letter when search

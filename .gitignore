@@ -1,7 +1,13 @@
+#ignore confidential folder
+confidential
+
 #ignore files installed by npm
 node_modules
 
+#ignore files by LinkedIn Learning
 /Ex_Files_Nodejs_EssT
 /Ex_Files_Express_EssT
+
+#Miscelleneous Files
 Github Workflow.pdf
 index-bak.js
