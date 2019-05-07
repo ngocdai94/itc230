@@ -32,3 +32,9 @@
 - integrate moongoose with MongoDB to index.js
 - update views and layout
 - use RegEx to allow non-sensitive letter when search
+
+--- Week 6: RESTful API's & Scraping ---
+- Enhanced index.js application to handle REST API request
+- Moved routes to  routes.js to help index.js clean and maintainable
+- Created a small HTML submit form to test REST API
+- Set Access-Control-Allow-Origin header for API routes
