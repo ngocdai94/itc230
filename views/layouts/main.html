@@ -5,10 +5,62 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    
+    <!-- Don't use this in production: -->
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+
+    <style>
+        .bookItem:hover {
+            color: blue;
+        }
+        .hidden {
+            display:none;
+        }
+        .show{
+            display:block;
+        }
+
+        div {
+            text-align: center; 
+            font-size: 1.15rem;
+        }
+
+        .left li, .right li{
+            text-align: left;
+            line-height: 25px;
+        }
+
+        .right {
+            position: relative;
+        }
+        .right ul {
+            position: absolute;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 45% 45%; 
+            grid-gap: 10px; /*for row and column*/
+            margin: 15px auto 15px 25px
+        }
+
+        .grid-item {
+            border: 1px solid #222;
+            text-align: center;
+            padding: 10px;
+        }
+
+        
+        form, .searchForm{
+            clear: both;
+        }
+    </style>
 </head>
 <body>
- 
-    {{{body}}}
- 
+    <main>
+        {{{body}}}
+    </main>
 </body>
 </html>

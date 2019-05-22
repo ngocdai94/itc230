@@ -38,3 +38,8 @@
 - Moved routes to  routes.js to help index.js clean and maintainable
 - Created a small HTML submit form to test REST API
 - Set Access-Control-Allow-Origin header for API routes
+
+--- Week 7: Converting to Single Page Application with ReactJS ---
+-
+-
+-

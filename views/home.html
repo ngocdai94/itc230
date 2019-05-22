@@ -1,54 +1,114 @@
-<h1>Welcome to Book Inventory</h1>
+<section id="root"> </section>
 
-<form action="/get" method="POST">
-    <input type="search" id="title" name="title" size="40" required="required" placeholder="Enter the name of the book">
-    <button type="submit">Search</button>
-</form>
+<script type="text/babel">
+    class BookApp extends React.Component {
+        // IMPORTANT: 
+        // make sure book is stringified from routes.js
+        // book has to be in 3 brackets
+        constructor(props){
+            // call the base constructor with props.
+            super(props);
+            this.state = { items: {{{book}}},
+                            selectedItem: '',
+                            showHide: 'hidden' };
 
-<div>
-    {{#if book}}
-        {{#if result }}
-            {{#if found}}
-                <p style="color:red"><b>{{title}}</b> is added to the Book Collection.</p>
-                <!-- <p style="color:red">Total item is: {{result.total}} </p> -->
-            {{else}}
-                <p><p style="color:red"><b>{{title}}</b> has already been added.</p></p>
-            {{/if}}
-        {{/if}}
+            this.showDetail = this.showDetail.bind(this);
+        } 
 
-        <h2>Below is our book collection..</h2>
-        {{#each book}}
-            <ul>
-                <li>Title: <a href="/get?title={{title}}"> {{title}} </a> </li>
-            </ul>
-        {{/each}}
-    {{/if}}
+        componentDidMount() {   
+            // code to execute when component first rendered to DOM
+        } 
 
-</div>
+        componentWillUnmount() {
+            // code to execute when component is removed from DOM
+        }
 
-<br>
+        showDetail(e) {
+            let onClickItem = this.state.items.find((item) => {
+                return item._id == e.target.id;
+            });
 
-<form action="/add" method="GET">
-    <fieldset>
-        <legend>Add or Update Book</legend>
-        <label for="title">Title: </label>
-        <input type="text" id="title" name="title" required="required"/>
+            this.setState({selectedItem: onClickItem});
+            console.log(this.state.selectedItem);
+        }
 
-        <br>
-        <label for="author">Author: </label>
-        <input type="text" id="author" name="author" required="required"/>
+        render() {
+            return (
+                <div>
+                    <h1>Welcome to ReactJS - Book Collection</h1>
 
-        <br>
-        <label for="price">Price: </label>
-        <input type="text" id="price" name="price" required="required"/>
+                    <SearchBookForm/>
+                    
+                    <div className="grid-container">
+                        <div className="grid-item">
+                            <BookList 
+                                items={this.state.items} 
+                                showDetail={this.showDetail}
+                            />
+                        </div>
+                        
+                        <div className="grid-item">
+                            <BookDetail
+                                item={this.state.selectedItem}
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    }
 
-        <br>
-        <button type="submit">Submit</button>
-    </fieldset>
-</form>
+    const SearchBookForm = () => {
+        return (
+            <div className="searchForm">
+                <input type="text" placeholder="Search a Book"
+                    //value={this.props.filterText}
+                    //onChange={this.handleFilterTextChange}
+                />
+            </div>
+        );
+    }
+
+    // IMPORTANT: make sure to include {} in function when passing
+    // state varible from the class.
+    const BookList = ({className, items, showDetail}) => {
+        return (
+            <div className="left">
+                <h3><b>Book Inventory</b></h3>
+                <ol>
+                    {items.map( (item, i) => (
+                        <div key={item._id}>
+                            <li id={item._id}  onClick={showDetail} className="bookItem"> 
+                                {item.title}
+                            </li>
+                        </div>
+                    ))}
+                </ol>
+            </div>
+        );
+    }
+
+    const BookDetail = ({item}) => {
+        return (
+            <div className="right">
+                <h3><b>Book Details</b></h3>
+                <div>
+                    <ul>
+                        <li>Title: {item.title}</li>
+                        <li>Author: {item.author}</li>
+                        <li>Price: ${item.price}</li>
+                    </ul>
+                </div>
+            </div>
+        );
+    }
+
+    ReactDOM.render(
+        <BookApp />, document.getElementById('root') 
+    );
+</script>
 
 <!-- Using REST API -->
-<br><br><br>
 <form action="/api/v1/add/" method="GET">
     <fieldset>
         <legend>Add or Update Book Using REST API</legend>

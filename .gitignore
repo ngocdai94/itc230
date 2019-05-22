@@ -7,7 +7,14 @@ node_modules
 #ignore files by LinkedIn Learning
 /Ex_Files_Nodejs_EssT
 /Ex_Files_Express_EssT
+/Ex_Files_ReactJS
 
 #Miscelleneous Files
 Github Workflow.pdf
 index-bak.js
+
+#previous assignment
+/previous_hw
+
+#previous home layout
+/views/bak
