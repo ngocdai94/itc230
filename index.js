@@ -17,6 +17,7 @@ app.set('view engine', '.html');
 // Configuing express for index.js
 app.set('port', process.env.PORT || 3000);
 app.use(express.static(__dirname + '/public'));   // set location for static files
+app.use(bodyParser.json());                       // parse application/json
 app.use(bodyParser.urlencoded({extended: true})); // parse form submissions
 app.use('/api', require('cors')());               // set Access-Control-Allow-Origin header for api route
 

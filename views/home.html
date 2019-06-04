@@ -9,10 +9,16 @@
             // call the base constructor with props.
             super(props);
             this.state = { items: {{{book}}},
-                            selectedItem: '',
-                            showHide: 'hidden' };
+                            selectedItem: {},
+                            filterText: '' };
 
+            // bind these events to the browser
             this.showDetail = this.showDetail.bind(this);
+            this.handleFilterTextChange = this.handleFilterTextChange.bind(this);
+            this.onChange = this.onChange.bind(this);
+            this.onSave = this.onSave.bind(this);
+            this.onDelete = this.onDelete.bind(this);
+            this.onReset = this.onReset.bind(this);
         } 
 
         componentDidMount() {   
@@ -23,13 +29,82 @@
             // code to execute when component is removed from DOM
         }
 
+        handleFilterTextChange(e) {
+            this.setState({ 
+                filterText: e.target.value.toLowerCase()
+            });
+        }
+
         showDetail(e) {
             let onClickItem = this.state.items.find((item) => {
                 return item._id == e.target.id;
             });
 
-            this.setState({selectedItem: onClickItem});
+            this.setState({
+                selectedItem: onClickItem
+            });
             console.log(this.state.selectedItem);
+        }
+
+        onChange(e) {
+            let newItem = this.state.selectedItem;
+            newItem[e.target.name] = e.target.value;
+            this.setState({selectedItem: newItem});
+        }
+            
+        onSave(e) {
+            let newItem = this.state.selectedItem;
+            if (!newItem.title) {
+                return;
+            }
+            fetch("/api/v1/add/", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newItem)
+            }).then((response) => {
+                return response.json()
+            }).then((json) => {
+                // Add a new item if not exist
+                let newData;
+                if (!newItem._id) { // add new item to array
+                    newData = this.state.items;
+                    newItem._id = json._id;
+                    newData.push(newItem);
+                } else { // update existing item 
+                    newData = this.state.items.map((item) => {
+                    if (item._id === newItem._id) {
+                        item = newItem; 
+                    }
+                    return item;
+                    });          
+                }
+        
+                // Update state with new array and reset the detail form
+                this.setState({items: newData, selectedItem: {}});
+            });
+        }
+
+        onDelete(e) {
+            let id = this.state.selectedItem._id;
+            fetch("/api/v1/book/delete/" + id, {
+                method: "POST"
+            }).then((response) => {
+                return response.json();
+            }).then((results) => {
+                // Filter all items except the one to be removed
+                const remainder = this.state.items.filter((item) => {
+                    return item._id !== id;
+                });
+
+                // Update state with new array
+                this.setState({items: remainder, selectedItem: {}});
+            });
+        }
+
+        onReset(e) {
+            this.setState({
+                selectedItem: {}
+            });
         }
 
         render() {
@@ -37,19 +112,26 @@
                 <div>
                     <h1>Welcome to ReactJS - Book Collection</h1>
 
-                    <SearchBookForm/>
+                    <SearchBookForm
+                        onFilterTextChange={this.handleFilterTextChange}
+                    />
                     
                     <div className="grid-container">
                         <div className="grid-item">
                             <BookList 
                                 items={this.state.items} 
                                 showDetail={this.showDetail}
+                                filterText={this.state.filterText}
                             />
                         </div>
                         
                         <div className="grid-item">
                             <BookDetail
-                                item={this.state.selectedItem}
+                                selectedItem={this.state.selectedItem}
+                                onChange={this.onChange}
+                                onSave={this.onSave}
+                                onDelete={this.onDelete}
+                                onReset={this.onReset}
                             />
                         </div>
                     </div>
@@ -58,46 +140,69 @@
         }
     }
 
-    const SearchBookForm = () => {
+    const SearchBookForm = ({onFilterTextChange}) => {
         return (
-            <div className="searchForm">
+            <form className="searchForm">
                 <input type="text" placeholder="Search a Book"
-                    //value={this.props.filterText}
-                    //onChange={this.handleFilterTextChange}
+                    onChange={onFilterTextChange}
                 />
-            </div>
+            </form>
         );
     }
 
     // IMPORTANT: make sure to include {} in function when passing
     // state varible from the class.
-    const BookList = ({className, items, showDetail}) => {
+    const BookList = ({items, showDetail, filterText}) => {
+        // found item in the search field?
+        // then push them in an array. Otherwise, print all
+        const rows = [];
+        items.forEach((item) => {
+            if (item.title.toLowerCase().indexOf(filterText) === -1) {
+                return;
+            }
+
+            rows.push(
+                <div key={item._id}>
+                    <li id={item._id}  onClick={showDetail} className="bookItem"> 
+                        {item.title}
+                    </li>
+                </div>
+            );
+        });
+
+        // not found print out the whole list 
         return (
             <div className="left">
                 <h3><b>Book Inventory</b></h3>
                 <ol>
-                    {items.map( (item, i) => (
-                        <div key={item._id}>
-                            <li id={item._id}  onClick={showDetail} className="bookItem"> 
-                                {item.title}
-                            </li>
-                        </div>
-                    ))}
+                    {rows}
                 </ol>
             </div>
         );
     }
 
-    const BookDetail = ({item}) => {
+    const BookDetail = ({selectedItem, onChange, onSave, onDelete, onReset}) => {
         return (
-            <div className="right">
+            <div id="right" className="right">
                 <h3><b>Book Details</b></h3>
                 <div>
-                    <ul>
-                        <li>Title: {item.title}</li>
-                        <li>Author: {item.author}</li>
-                        <li>Price: ${item.price}</li>
-                    </ul>
+                    <form>
+                        <label>
+                            Title:<br/>        
+                            <input type="text" name="title" value={selectedItem.title || ""} onChange={onChange}/>
+                        </label>
+                        <label>
+                            Author:<br/>
+                            <input type="text" name="author" value={selectedItem.author || ""} onChange={onChange}/>
+                        </label>
+                        <label>
+                            Price:<br/>
+                            <input type="text" name="price" value={selectedItem.price || ""} onChange={onChange}/>
+                        </label><br/>
+                        <button type="button" onClick={onSave}>Save/Update</button>
+                        <button type="button" onClick={onReset}>Reset</button> 
+                        <button type="button" onClick={onDelete}>Delete</button>
+                    </form>
                 </div>
             </div>
         );
@@ -107,23 +212,3 @@
         <BookApp />, document.getElementById('root') 
     );
 </script>
-
-<!-- Using REST API -->
-<form action="/api/v1/add/" method="GET">
-    <fieldset>
-        <legend>Add or Update Book Using REST API</legend>
-        <label for="title">Title: </label>
-        <input type="text" id="title" name="title" required="required"/>
-
-        <br>
-        <label for="author">Author: </label>
-        <input type="text" id="author" name="author" required="required"/>
-
-        <br>
-        <label for="price">Price: </label>
-        <input type="text" id="price" name="price" required="required"/>
-
-        <br>
-        <button type="submit">Submit</button>
-    </fieldset>
-</form>
